@@ -1,16 +1,48 @@
-# React + Vite
+# NexoTI — Helpdesk Front
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interface web para abertura e acompanhamento de chamados de suporte. O projeto consome a API Laravel do helpdesk e foi pensado para ser simples tanto para solicitantes quanto para a equipe de TI.
 
-Currently, two official plugins are available:
+## Funcionalidades
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Listagem, busca e filtro de chamados
+- Abertura de chamado com categoria e prioridade
+- Detalhes, comentários e histórico do atendimento
+- Ações para assumir, finalizar e cancelar chamados
+- Listagem, criação, edição e remoção de categorias
+- Estados de carregamento, erro e lista vazia
+- Layout responsivo para computador e celular
 
-## React Compiler
+## Tecnologias
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+React 19, Vite, JavaScript, Tailwind CSS e Fetch API.
 
-## Expanding the ESLint configuration
+## Como executar
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. Instale as dependências:
+
+   ```bash
+   npm install
+   ```
+
+2. Copie `.env.example` para `.env` e ajuste a URL da API, se necessário.
+
+3. Inicie o projeto:
+
+   ```bash
+   npm run dev
+   ```
+
+Por padrão, o front utiliza `http://127.0.0.1:8000/api`.
+
+## Comandos
+
+```bash
+npm run dev      # ambiente de desenvolvimento
+npm run build    # build de produção
+npm run lint     # análise do código
+npm run preview  # visualização do build
+```
+
+## API esperada
+
+O back-end precisa disponibilizar os endpoints REST descritos em [`docs/levantamento-front.md`](docs/levantamento-front.md), incluindo `/chamados`, `/categorias` e as ações específicas de chamados.
