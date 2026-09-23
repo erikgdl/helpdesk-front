@@ -2,55 +2,40 @@ import { useEffect, useState } from 'react'
 import { criarChamado } from '../services/chamadoService'
 import { listarCategorias } from '../services/categoriaService'
 import Button from './Button'
-import Card from './Card'
+import Icon from './Icon'
+import { Field, Input, Select, Textarea } from './FormField'
 
-function NovoChamadoForm({ onChamadoCriado }) {
-    const [titulo, setTitulo] = useState('')
-    const [descricao, setDescricao] = useState('')
-    const [prioridade, setPrioridade] = useState('media')
-    const [usuarioId, setUsuarioId] = useState(1)
-    const [categoriaId, setCategoriaId] = useState('')
+function NovoChamadoForm({ onChamadoCriado, onCancelar }) {
+    const [form, setForm] = useState({ titulo: '', descricao: '', prioridade: 'media', usuario_id: 1, categoria_id: '' })
     const [categorias, setCategorias] = useState([])
     const [erro, setErro] = useState(null)
     const [salvando, setSalvando] = useState(false)
 
     useEffect(() => {
-        async function carregarCategorias() {
-            try {
-                const dados = await listarCategorias()
-                setCategorias(dados)
-
-                if (dados.length > 0) {
-                    setCategoriaId(dados[0].id)
-                }
-            } catch (error) {
-                setErro(error.message)
-            }
-        }
-
-        carregarCategorias()
+        listarCategorias()
+            .then((dados) => {
+                const lista = Array.isArray(dados) ? dados : []
+                setCategorias(lista)
+                if (lista.length) setForm((atual) => ({ ...atual, categoria_id: lista[0].id }))
+            })
+            .catch((error) => setErro(error.message))
     }, [])
+
+    function atualizar(campo, valor) {
+        setForm((atual) => ({ ...atual, [campo]: valor }))
+    }
 
     async function handleSubmit(event) {
         event.preventDefault()
-
         setErro(null)
         setSalvando(true)
 
         try {
             await criarChamado({
-                titulo,
-                descricao,
-                prioridade,
-                usuario_id: Number(usuarioId),
-                categoria_id: Number(categoriaId),
+                ...form,
+                usuario_id: Number(form.usuario_id),
+                categoria_id: Number(form.categoria_id),
             })
-
-            setTitulo('')
-            setDescricao('')
-            setPrioridade('media')
-            setUsuarioId(1)
-
             onChamadoCriado()
         } catch (error) {
             setErro(error.message)
@@ -60,106 +45,57 @@ function NovoChamadoForm({ onChamadoCriado }) {
     }
 
     return (
-        <Card>
-            <h3 className="mb-4 text-lg font-bold text-white">
-                Novo chamado
-            </h3>
-
-            {erro && (
-                <p className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                    {erro}
-                </p>
-            )}
-
-            <form onSubmit={handleSubmit} className="grid gap-4">
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-300">
-                        Título
-                    </label>
-
-                    <input
-                        type="text"
-                        value={titulo}
-                        onChange={(event) => setTitulo(event.target.value)}
-                        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
-                        placeholder="Ex: Erro ao acessar sistema"
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-300">
-                        Descrição
-                    </label>
-
-                    <textarea
-                        value={descricao}
-                        onChange={(event) => setDescricao(event.target.value)}
-                        className="min-h-24 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
-                        placeholder="Descreva o problema"
-                        required
-                    />
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-3">
+        <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-950/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="novo-chamado-title">
+            <section className="my-6 w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-700 bg-slate-900 shadow-2xl shadow-black/50">
+                <header className="flex items-start justify-between border-b border-slate-800 p-6">
                     <div>
-                        <label className="mb-1 block text-sm font-medium text-slate-300">
-                            Prioridade
-                        </label>
+                        <span className="mb-3 grid size-10 place-items-center rounded-xl bg-cyan-500/10 text-cyan-400"><Icon name="plus" /></span>
+                        <h2 id="novo-chamado-title" className="text-xl font-bold text-white">Abrir novo chamado</h2>
+                        <p className="mt-1 text-sm text-slate-400">Conte o que aconteceu. A equipe de TI cuidará do restante.</p>
+                    </div>
+                    <button onClick={onCancelar} className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white" aria-label="Fechar"><Icon name="close" /></button>
+                </header>
 
-                        <select
-                            value={prioridade}
-                            onChange={(event) => setPrioridade(event.target.value)}
-                            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
-                        >
-                            <option value="baixa">Baixa</option>
-                            <option value="media">Média</option>
-                            <option value="alta">Alta</option>
-                            <option value="urgente">Urgente</option>
-                        </select>
+                <form onSubmit={handleSubmit} className="grid gap-5 p-6">
+                    {erro && <p className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{erro}</p>}
+
+                    <Field label="Qual é o problema?">
+                        <Input value={form.titulo} onChange={(e) => atualizar('titulo', e.target.value)} placeholder="Ex.: Não consigo acessar o e-mail" required autoFocus />
+                    </Field>
+
+                    <Field label="Conte mais detalhes" hint="Informe quando começou e o que você já tentou fazer.">
+                        <Textarea value={form.descricao} onChange={(e) => atualizar('descricao', e.target.value)} placeholder="Descreva o problema com suas palavras..." required />
+                    </Field>
+
+                    <div className="grid gap-4 sm:grid-cols-3">
+                        <Field label="Impacto">
+                            <Select value={form.prioridade} onChange={(e) => atualizar('prioridade', e.target.value)}>
+                                <option value="baixa">Baixo</option>
+                                <option value="media">Médio</option>
+                                <option value="alta">Alto</option>
+                                <option value="urgente">Urgente</option>
+                            </Select>
+                        </Field>
+                        <Field label="Categoria">
+                            <Select value={form.categoria_id} onChange={(e) => atualizar('categoria_id', e.target.value)} required disabled={!categorias.length}>
+                                {!categorias.length && <option value="">Carregando...</option>}
+                                {categorias.map((categoria) => <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>)}
+                            </Select>
+                        </Field>
+                        <Field label="Seu código" hint="Código do solicitante">
+                            <Input type="number" min="1" value={form.usuario_id} onChange={(e) => atualizar('usuario_id', e.target.value)} required />
+                        </Field>
                     </div>
 
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-slate-300">
-                            Usuário ID
-                        </label>
-
-                        <input
-                            type="number"
-                            value={usuarioId}
-                            onChange={(event) => setUsuarioId(event.target.value)}
-                            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-slate-300">
-                            Categoria
-                        </label>
-
-                        <select
-                            value={categoriaId}
-                            onChange={(event) => setCategoriaId(event.target.value)}
-                            className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white outline-none focus:border-blue-500"
-                            required
-                        >
-                            {categorias.map((categoria) => (
-                                <option key={categoria.id} value={categoria.id}>
-                                    {categoria.nome}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <Button type="submit">
-                        {salvando ? 'Salvando...' : 'Criar chamado'}
-                    </Button>
-                </div>
-            </form>
-        </Card>
+                    <footer className="flex flex-col-reverse gap-3 border-t border-slate-800 pt-5 sm:flex-row sm:justify-end">
+                        <Button variant="ghost" onClick={onCancelar}>Cancelar</Button>
+                        <Button type="submit" disabled={salvando || !categorias.length}>
+                            {salvando ? 'Enviando...' : <><Icon name="tickets" /> Abrir chamado</>}
+                        </Button>
+                    </footer>
+                </form>
+            </section>
+        </div>
     )
 }
 

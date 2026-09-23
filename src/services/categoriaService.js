@@ -1,11 +1,45 @@
 import API_URL from '../api/api'
 
-export async function listarCategorias() {
-    const resposta = await fetch(`${API_URL}/categorias`)
+async function tratarResposta(resposta, mensagemPadrao) {
+    const dados = await resposta.json().catch(() => null)
 
     if (!resposta.ok) {
-        throw new Error('Erro ao buscar categorias')
+        const erros = dados?.errors ? Object.values(dados.errors).flat().join(' ') : null
+        throw new Error(erros || dados?.message || mensagemPadrao)
     }
 
-    return resposta.json()
+    return dados?.data ?? dados
+}
+
+export async function listarCategorias() {
+    const resposta = await fetch(`${API_URL}/categorias`)
+    return tratarResposta(resposta, 'Não foi possível carregar as categorias.')
+}
+
+export async function criarCategoria(dados) {
+    const resposta = await fetch(`${API_URL}/categorias`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dados),
+    })
+    return tratarResposta(resposta, 'Não foi possível criar a categoria.')
+}
+
+export async function editarCategoria(id, dados) {
+    const resposta = await fetch(`${API_URL}/categorias/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dados),
+    })
+    return tratarResposta(resposta, 'Não foi possível atualizar a categoria.')
+}
+
+export async function removerCategoria(id) {
+    const resposta = await fetch(`${API_URL}/categorias/${id}`, { method: 'DELETE' })
+
+    if (resposta.status === 204) {
+        return null
+    }
+
+    return tratarResposta(resposta, 'Não foi possível remover a categoria.')
 }
