@@ -46,3 +46,5 @@ npm run preview  # visualização do build
 ## API esperada
 
 O back-end precisa disponibilizar os endpoints REST descritos em [`docs/levantamento-front.md`](docs/levantamento-front.md), incluindo `/chamados`, `/categorias` e as ações específicas de chamados.
+
+Uma explicação simples das funcionalidades, fluxos e comunicação entre as partes está disponível em [`docs/guia-do-front-end.md`](docs/guia-do-front-end.md).
