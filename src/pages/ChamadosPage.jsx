@@ -26,7 +26,7 @@ function formatarData(data) {
     return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(data))
 }
 
-function ChamadosPage({ onAbrirChamado }) {
+function ChamadosPage({ usuario, onAbrirChamado }) {
     const [chamados, setChamados] = useState([])
     const [carregando, setCarregando] = useState(true)
     const [erro, setErro] = useState(null)
@@ -69,10 +69,10 @@ function ChamadosPage({ onAbrirChamado }) {
             <header className="mb-7 flex flex-col justify-between gap-5 md:flex-row md:items-end">
                 <div>
                     <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-cyan-400">Central de suporte</p>
-                    <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">Como podemos ajudar?</h1>
-                    <p className="mt-2 text-slate-400">Acompanhe suas solicitações ou informe um novo problema.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">{usuario.tipo === 'solicitante' ? 'Como podemos ajudar?' : 'Painel de atendimento'}</h1>
+                    <p className="mt-2 text-slate-400">{usuario.tipo === 'solicitante' ? 'Acompanhe suas solicitações ou informe um novo problema.' : 'Acompanhe e atenda as solicitações da central.'}</p>
                 </div>
-                <Button onClick={() => setMostrarFormulario(true)} className="md:self-center"><Icon name="plus" /> Novo chamado</Button>
+                {usuario.tipo === 'solicitante' && <Button onClick={() => setMostrarFormulario(true)} className="md:self-center"><Icon name="plus" /> Novo chamado</Button>}
             </header>
 
             {!carregando && !erro && (
@@ -98,7 +98,7 @@ function ChamadosPage({ onAbrirChamado }) {
 
                 <div className="p-4">
                     {carregando ? <Loading text="Buscando chamados..." /> : erro ? <ErrorMessage message={erro} onRetry={carregarChamados} /> : filtrados.length === 0 ? (
-                        <EmptyState title={chamados.length ? 'Nenhum resultado encontrado' : 'Nenhum chamado por aqui'} description={chamados.length ? 'Tente buscar usando outras palavras ou filtros.' : 'Quando precisar da TI, abra um chamado e acompanhe tudo por aqui.'} action={!chamados.length && <Button onClick={() => setMostrarFormulario(true)}><Icon name="plus" /> Abrir primeiro chamado</Button>} />
+                        <EmptyState title={chamados.length ? 'Nenhum resultado encontrado' : 'Nenhum chamado por aqui'} description={chamados.length ? 'Tente buscar usando outras palavras ou filtros.' : usuario.tipo === 'solicitante' ? 'Quando precisar da TI, abra um chamado e acompanhe tudo por aqui.' : 'Não há solicitações aguardando atendimento.'} action={!chamados.length && usuario.tipo === 'solicitante' && <Button onClick={() => setMostrarFormulario(true)}><Icon name="plus" /> Abrir primeiro chamado</Button>} />
                     ) : (
                         <div className="grid gap-3">
                             {filtrados.map((chamado) => (
@@ -116,7 +116,7 @@ function ChamadosPage({ onAbrirChamado }) {
                 </div>
             </section>
 
-            {mostrarFormulario && <NovoChamadoForm onCancelar={() => setMostrarFormulario(false)} onChamadoCriado={() => { setMostrarFormulario(false); carregarChamados() }} />}
+            {mostrarFormulario && usuario.tipo === 'solicitante' && <NovoChamadoForm onCancelar={() => setMostrarFormulario(false)} onChamadoCriado={() => { setMostrarFormulario(false); carregarChamados() }} />}
         </>
     )
 }

@@ -8,7 +8,7 @@ import Icon from '../components/Icon'
 
 const formVazio = { nome: '', descricao: '' }
 
-function CategoriasPage() {
+function CategoriasPage({ usuario }) {
     const [categorias, setCategorias] = useState([])
     const [form, setForm] = useState(formVazio)
     const [editando, setEditando] = useState(null)
@@ -68,7 +68,7 @@ function CategoriasPage() {
                     {erro && <div className="mb-4"><ErrorMessage message={erro} onRetry={carregar} /></div>}
                     {carregando ? <Loading text="Carregando categorias..." /> : categorias.length === 0 ? <EmptyState icon="category" title="Nenhuma categoria cadastrada" description="Use o formulário para criar a primeira categoria." /> : (
                         <div className="grid gap-3 sm:grid-cols-2">
-                            {categorias.map((categoria) => <Card key={categoria.id} className="group flex min-h-40 flex-col"><div className="mb-4 flex items-start justify-between"><span className="grid size-10 place-items-center rounded-xl bg-slate-800 text-cyan-400"><Icon name="category" /></span><span className="font-mono text-xs text-slate-600">#{categoria.id}</span></div><h2 className="font-bold text-white">{categoria.nome}</h2><p className="mt-2 flex-1 text-sm leading-6 text-slate-400">{categoria.descricao || 'Sem descrição.'}</p><div className="mt-5 flex gap-2 border-t border-slate-800 pt-4"><Button variant="ghost" className="flex-1" onClick={() => iniciarEdicao(categoria)}><Icon name="edit" size={15} /> Editar</Button><Button variant="danger" onClick={() => excluir(categoria)} aria-label={`Remover ${categoria.nome}`}><Icon name="trash" size={15} /></Button></div></Card>)}
+                            {categorias.map((categoria) => <Card key={categoria.id} className="group flex min-h-40 flex-col"><div className="mb-4 flex items-start justify-between"><span className="grid size-10 place-items-center rounded-xl bg-slate-800 text-cyan-400"><Icon name="category" /></span><span className="font-mono text-xs text-slate-600">#{categoria.id}</span></div><h2 className="font-bold text-white">{categoria.nome}</h2><p className="mt-2 flex-1 text-sm leading-6 text-slate-400">{categoria.descricao || 'Sem descrição.'}</p>{usuario.tipo === 'admin' && <div className="mt-5 flex gap-2 border-t border-slate-800 pt-4"><Button variant="ghost" className="flex-1" onClick={() => iniciarEdicao(categoria)}><Icon name="edit" size={15} /> Editar</Button><Button variant="danger" onClick={() => excluir(categoria)} aria-label={`Remover ${categoria.nome}`}><Icon name="trash" size={15} /></Button></div>}</Card>)}
                         </div>
                     )}
                 </section>

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { adicionarComentario, assumirChamado, buscarChamado, cancelarChamado, finalizarChamado } from '../services/chamadoService'
+import { adicionarComentario, assumirChamado, buscarChamado, cancelarChamado, finalizarChamado, removerChamado } from '../services/chamadoService'
 import Badge from '../components/Badge'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import { ErrorMessage, Loading } from '../components/Feedback'
-import { Field, Input, Textarea } from '../components/FormField'
+import { Field, Textarea } from '../components/FormField'
 import Icon from '../components/Icon'
 
 const statusLabel = { aberto: 'Aberto', em_atendimento: 'Em atendimento', aguardando_usuario: 'Aguardando você', finalizado: 'Finalizado', cancelado: 'Cancelado' }
@@ -13,14 +13,12 @@ const prioridadeLabel = { baixa: 'Baixa', media: 'Média', alta: 'Alta', urgente
 function nome(pessoa, padrao = 'Não informado') { return pessoa?.name ?? pessoa?.nome ?? padrao }
 function dataHora(data) { return data ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(data)) : 'Não informada' }
 
-function ChamadoDetalhesPage({ chamadoId, onVoltar }) {
+function ChamadoDetalhesPage({ chamadoId, usuario, onVoltar }) {
     const [chamado, setChamado] = useState(null)
     const [carregando, setCarregando] = useState(true)
     const [processando, setProcessando] = useState(false)
     const [erro, setErro] = useState(null)
     const [erroAcao, setErroAcao] = useState(null)
-    const [tecnicoId, setTecnicoId] = useState(2)
-    const [usuarioId, setUsuarioId] = useState(1)
     const [mensagem, setMensagem] = useState('')
 
     async function carregar() {
@@ -49,8 +47,21 @@ function ChamadoDetalhesPage({ chamadoId, onVoltar }) {
     async function comentar(event) {
         event.preventDefault()
         if (!mensagem.trim()) return
-        await executar(() => adicionarComentario(chamadoId, { usuario_id: usuarioId, mensagem }))
+        await executar(() => adicionarComentario(chamadoId, { mensagem }))
         setMensagem('')
+    }
+
+    async function remover() {
+        if (!window.confirm('Remover este chamado da lista? O registro continuará salvo no banco de dados.')) return
+        setProcessando(true)
+        setErroAcao(null)
+        try {
+            await removerChamado(chamadoId)
+            onVoltar()
+        } catch (error) {
+            setErroAcao(error.message)
+            setProcessando(false)
+        }
     }
 
     if (carregando && !chamado) return <Loading text="Abrindo chamado..." />
@@ -89,7 +100,7 @@ function ChamadoDetalhesPage({ chamadoId, onVoltar }) {
                                 <div key={comentario.id} className="flex gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-full bg-slate-800 text-slate-400"><Icon name="user" size={16} /></span><div className="min-w-0 flex-1 rounded-xl rounded-tl-none bg-slate-800/60 p-4"><div className="mb-2 flex flex-wrap justify-between gap-2"><strong className="text-sm text-white">{nome(comentario.usuario)}</strong><time className="text-xs text-slate-500">{dataHora(comentario.created_at ?? comentario.data)}</time></div><p className="whitespace-pre-wrap text-sm leading-6 text-slate-300">{comentario.mensagem}</p></div></div>
                             ))}
                         </div>
-                        {!encerrado && <form onSubmit={comentar} className="mt-5 grid gap-3 border-t border-slate-800 pt-5"><Field label="Adicionar mensagem"><Textarea value={mensagem} onChange={(e) => setMensagem(e.target.value)} placeholder="Escreva uma atualização ou dúvida..." required /></Field><div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><Field label="Seu código"><Input className="w-32" type="number" min="1" value={usuarioId} onChange={(e) => setUsuarioId(e.target.value)} required /></Field><Button type="submit" disabled={processando || !mensagem.trim()}><Icon name="message" /> Enviar mensagem</Button></div></form>}
+                        {!encerrado && <form onSubmit={comentar} className="mt-5 grid gap-3 border-t border-slate-800 pt-5"><Field label="Adicionar mensagem"><Textarea value={mensagem} onChange={(e) => setMensagem(e.target.value)} placeholder="Escreva uma atualização ou dúvida..." required /></Field><div className="flex justify-end"><Button type="submit" disabled={processando || !mensagem.trim()}><Icon name="message" /> Enviar mensagem</Button></div></form>}
                     </Card>
 
                     <Card>
@@ -104,14 +115,14 @@ function ChamadoDetalhesPage({ chamadoId, onVoltar }) {
                         <dl className="grid gap-4 text-sm"><div><dt className="text-xs text-slate-500">Categoria</dt><dd className="mt-1 font-semibold text-slate-200">{chamado.categoria?.nome ?? 'Sem categoria'}</dd></div><div><dt className="text-xs text-slate-500">Solicitante</dt><dd className="mt-1 font-semibold text-slate-200">{nome(chamado.usuario ?? chamado.solicitante)}</dd></div><div><dt className="text-xs text-slate-500">Técnico responsável</dt><dd className="mt-1 font-semibold text-slate-200">{nome(chamado.tecnico, 'Aguardando atribuição')}</dd></div>{chamado.data_fechamento && <div><dt className="text-xs text-slate-500">Encerrado em</dt><dd className="mt-1 font-semibold text-slate-200">{dataHora(chamado.data_fechamento)}</dd></div>}</dl>
                     </Card>
 
-                    {!encerrado && <Card>
+                    {usuario.tipo !== 'solicitante' && <Card>
                         <h2 className="mb-1 font-bold text-white">Ações da equipe</h2>
                         <p className="mb-4 text-xs leading-5 text-slate-500">Área destinada ao atendimento técnico.</p>
-                        <Field label="Código do técnico"><Input type="number" min="1" value={tecnicoId} onChange={(e) => setTecnicoId(e.target.value)} /></Field>
                         <div className="mt-4 grid gap-2">
-                            {chamado.status === 'aberto' && <Button disabled={processando} onClick={() => executar(() => assumirChamado(chamadoId, tecnicoId))}><Icon name="user" /> Assumir atendimento</Button>}
-                            {chamado.status === 'em_atendimento' && <Button variant="success" disabled={processando} onClick={() => executar(() => finalizarChamado(chamadoId, tecnicoId))}><Icon name="check" /> Marcar como resolvido</Button>}
-                            <Button variant="danger" disabled={processando} onClick={() => { if (window.confirm('Deseja realmente cancelar este chamado?')) executar(() => cancelarChamado(chamadoId, usuarioId)) }}><Icon name="close" /> Cancelar chamado</Button>
+                            {!encerrado && usuario.tipo === 'tecnico' && chamado.status === 'aberto' && <Button disabled={processando} onClick={() => executar(() => assumirChamado(chamadoId))}><Icon name="user" /> Assumir atendimento</Button>}
+                            {!encerrado && usuario.tipo === 'tecnico' && chamado.status === 'em_atendimento' && chamado.tecnico_id === usuario.id && <Button variant="success" disabled={processando} onClick={() => executar(() => finalizarChamado(chamadoId))}><Icon name="check" /> Marcar como resolvido</Button>}
+                            {!encerrado && usuario.tipo === 'admin' && <Button variant="danger" disabled={processando} onClick={() => { if (window.confirm('Deseja realmente cancelar este chamado?')) executar(() => cancelarChamado(chamadoId)) }}><Icon name="close" /> Cancelar chamado</Button>}
+                            <Button variant="danger" disabled={processando} onClick={remover}><Icon name="trash" /> Remover da lista</Button>
                         </div>
                     </Card>}
                 </aside>
