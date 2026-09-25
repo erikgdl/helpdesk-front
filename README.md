@@ -1,20 +1,40 @@
 # NexoTI — Helpdesk Front
 
-Interface web para abertura e acompanhamento de chamados de suporte. O projeto consome a API Laravel do helpdesk e foi pensado para ser simples tanto para solicitantes quanto para a equipe de TI.
+Interface web responsiva para abertura, acompanhamento e atendimento de chamados de suporte. A aplicação consome a API Laravel do NexoTI e oferece experiências específicas para solicitantes, técnicos e administradores.
 
 ## Funcionalidades
 
-- Listagem, busca e filtro de chamados
-- Abertura de chamado com categoria e prioridade
-- Detalhes, comentários e histórico do atendimento
-- Ações para assumir, finalizar e cancelar chamados
-- Listagem, criação, edição e remoção de categorias
-- Estados de carregamento, erro e lista vazia
-- Layout responsivo para computador e celular
+- Login separado entre o portal do solicitante e o acesso da equipe técnica
+- Sessão autenticada por token e encerramento automático em respostas não autorizadas
+- Painel de chamados com indicadores, busca por título ou número e filtro por status
+- Abertura de chamados com categoria, prioridade e descrição
+- Página de detalhes com conversa, histórico e informações do atendimento
+- Fluxos de assumir, finalizar, cancelar e remover chamados conforme o perfil
+- Gestão de categorias com criação, edição e exclusão
+- Estados de carregamento, erro, tentativa novamente e listas vazias
+- Layout responsivo para desktop e dispositivos móveis
+
+## Perfis de acesso
+
+| Perfil | Permissões principais |
+| --- | --- |
+| Solicitante | Abrir e acompanhar chamados e enviar mensagens |
+| Técnico | Visualizar chamados, assumir atendimentos e finalizar os próprios atendimentos |
+| Administrador | Visualizar chamados, cancelar atendimentos e gerenciar categorias |
 
 ## Tecnologias
 
-React 19, Vite, JavaScript, Tailwind CSS e Fetch API.
+- React 19
+- Vite 8
+- Tailwind CSS 4
+- JavaScript
+- Fetch API
+
+## Pré-requisitos
+
+- Node.js compatível com o Vite 8
+- npm
+- API do NexoTI em execução
 
 ## Como executar
 
@@ -24,27 +44,33 @@ React 19, Vite, JavaScript, Tailwind CSS e Fetch API.
    npm install
    ```
 
-2. Copie `.env.example` para `.env` e ajuste a URL da API, se necessário.
+2. Crie o arquivo de ambiente a partir do exemplo:
 
-3. Inicie o projeto:
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Se necessário, altere a URL da API em `.env`:
+
+   ```env
+   VITE_API_URL=http://127.0.0.1:8000/api
+   ```
+
+4. Inicie o servidor de desenvolvimento:
 
    ```bash
    npm run dev
    ```
 
-Por padrão, o front utiliza `http://127.0.0.1:8000/api`.
-
-## Comandos
+## Comandos disponíveis
 
 ```bash
-npm run dev      # ambiente de desenvolvimento
-npm run build    # build de produção
-npm run lint     # análise do código
-npm run preview  # visualização do build
+npm run dev      # inicia o ambiente de desenvolvimento
+npm run build    # gera o build de produção
+npm run lint     # executa a análise estática do código
+npm run preview  # visualiza localmente o build gerado
 ```
 
-## API esperada
+## Integração com a API
 
-O back-end precisa disponibilizar os endpoints REST descritos em [`docs/levantamento-front.md`](docs/levantamento-front.md), incluindo `/chamados`, `/categorias` e as ações específicas de chamados.
-
-Uma explicação simples das funcionalidades, fluxos e comunicação entre as partes está disponível em [`docs/guia-do-front-end.md`](docs/guia-do-front-end.md).
+A aplicação espera uma API REST com autenticação Bearer e rotas para login, logout, chamados, comentários, ações de atendimento e categorias. Por padrão, as requisições são enviadas para `http://127.0.0.1:8000/api`; esse endereço pode ser substituído pela variável `VITE_API_URL`.
