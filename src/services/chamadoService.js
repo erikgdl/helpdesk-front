@@ -1,4 +1,4 @@
-import API_URL from '../api/api'
+import { apiFetch } from '../api/api'
 
 async function tratarResposta(resposta, mensagemPadrao) {
     const dados = await resposta.json().catch(() => null)
@@ -12,12 +12,12 @@ async function tratarResposta(resposta, mensagemPadrao) {
 }
 
 export async function listarChamados() {
-    const resposta = await fetch(`${API_URL}/chamados`)
+    const resposta = await apiFetch('/chamados')
     return tratarResposta(resposta, 'Não foi possível carregar os chamados.')
 }
 
 export async function criarChamado(dados) {
-    const resposta = await fetch(`${API_URL}/chamados`, {
+    const resposta = await apiFetch('/chamados', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -29,12 +29,17 @@ export async function criarChamado(dados) {
 }
 
 export async function buscarChamado(id) {
-    const resposta = await fetch(`${API_URL}/chamados/${id}`)
+    const resposta = await apiFetch(`/chamados/${id}`)
     return tratarResposta(resposta, 'Não foi possível carregar este chamado.')
 }
 
+export async function removerChamado(id) {
+    const resposta = await apiFetch(`/chamados/${id}`, { method: 'DELETE' })
+    return tratarResposta(resposta, 'Não foi possível remover o chamado da lista.')
+}
+
 async function executarAcao(id, acao, dados, mensagem) {
-    const resposta = await fetch(`${API_URL}/chamados/${id}/${acao}`, {
+    const resposta = await apiFetch(`/chamados/${id}/${acao}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dados),
@@ -43,21 +48,20 @@ async function executarAcao(id, acao, dados, mensagem) {
     return tratarResposta(resposta, mensagem)
 }
 
-export function assumirChamado(id, tecnicoId) {
-    return executarAcao(id, 'assumir', { tecnico_id: Number(tecnicoId) }, 'Não foi possível assumir o chamado.')
+export function assumirChamado(id) {
+    return executarAcao(id, 'assumir', {}, 'Não foi possível assumir o chamado.')
 }
 
 export function adicionarComentario(id, dados) {
     return executarAcao(id, 'comentarios', {
-        usuario_id: Number(dados.usuario_id),
         mensagem: dados.mensagem,
     }, 'Não foi possível adicionar o comentário.')
 }
 
-export function finalizarChamado(id, tecnicoId) {
-    return executarAcao(id, 'finalizar', { tecnico_id: Number(tecnicoId) }, 'Não foi possível finalizar o chamado.')
+export function finalizarChamado(id) {
+    return executarAcao(id, 'finalizar', {}, 'Não foi possível finalizar o chamado.')
 }
 
-export function cancelarChamado(id, usuarioId) {
-    return executarAcao(id, 'cancelar', { usuario_id: Number(usuarioId) }, 'Não foi possível cancelar o chamado.')
+export function cancelarChamado(id) {
+    return executarAcao(id, 'cancelar', {}, 'Não foi possível cancelar o chamado.')
 }

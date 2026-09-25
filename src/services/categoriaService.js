@@ -1,4 +1,4 @@
-import API_URL from '../api/api'
+import { apiFetch } from '../api/api'
 
 async function tratarResposta(resposta, mensagemPadrao) {
     const dados = await resposta.json().catch(() => null)
@@ -12,12 +12,12 @@ async function tratarResposta(resposta, mensagemPadrao) {
 }
 
 export async function listarCategorias() {
-    const resposta = await fetch(`${API_URL}/categorias`)
+    const resposta = await apiFetch('/categorias')
     return tratarResposta(resposta, 'Não foi possível carregar as categorias.')
 }
 
 export async function criarCategoria(dados) {
-    const resposta = await fetch(`${API_URL}/categorias`, {
+    const resposta = await apiFetch('/categorias', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dados),
@@ -26,7 +26,7 @@ export async function criarCategoria(dados) {
 }
 
 export async function editarCategoria(id, dados) {
-    const resposta = await fetch(`${API_URL}/categorias/${id}`, {
+    const resposta = await apiFetch(`/categorias/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dados),
@@ -35,7 +35,7 @@ export async function editarCategoria(id, dados) {
 }
 
 export async function removerCategoria(id) {
-    const resposta = await fetch(`${API_URL}/categorias/${id}`, { method: 'DELETE' })
+    const resposta = await apiFetch(`/categorias/${id}`, { method: 'DELETE' })
 
     if (resposta.status === 204) {
         return null

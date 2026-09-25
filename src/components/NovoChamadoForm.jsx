@@ -6,7 +6,7 @@ import Icon from './Icon'
 import { Field, Input, Select, Textarea } from './FormField'
 
 function NovoChamadoForm({ onChamadoCriado, onCancelar }) {
-    const [form, setForm] = useState({ titulo: '', descricao: '', prioridade: 'media', usuario_id: 1, categoria_id: '' })
+    const [form, setForm] = useState({ titulo: '', descricao: '', prioridade: 'media', categoria_id: '' })
     const [categorias, setCategorias] = useState([])
     const [erro, setErro] = useState(null)
     const [salvando, setSalvando] = useState(false)
@@ -33,7 +33,6 @@ function NovoChamadoForm({ onChamadoCriado, onCancelar }) {
         try {
             await criarChamado({
                 ...form,
-                usuario_id: Number(form.usuario_id),
                 categoria_id: Number(form.categoria_id),
             })
             onChamadoCriado()
@@ -67,7 +66,7 @@ function NovoChamadoForm({ onChamadoCriado, onCancelar }) {
                         <Textarea value={form.descricao} onChange={(e) => atualizar('descricao', e.target.value)} placeholder="Descreva o problema com suas palavras..." required />
                     </Field>
 
-                    <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="grid gap-4 sm:grid-cols-2">
                         <Field label="Impacto">
                             <Select value={form.prioridade} onChange={(e) => atualizar('prioridade', e.target.value)}>
                                 <option value="baixa">Baixo</option>
@@ -81,9 +80,6 @@ function NovoChamadoForm({ onChamadoCriado, onCancelar }) {
                                 {!categorias.length && <option value="">Carregando...</option>}
                                 {categorias.map((categoria) => <option key={categoria.id} value={categoria.id}>{categoria.nome}</option>)}
                             </Select>
-                        </Field>
-                        <Field label="Seu código" hint="Código do solicitante">
-                            <Input type="number" min="1" value={form.usuario_id} onChange={(e) => atualizar('usuario_id', e.target.value)} required />
                         </Field>
                     </div>
 
